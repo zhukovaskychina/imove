@@ -1,0 +1,32 @@
+.DS_Store
+.vscode
+.eslintcache
+.size-snapshot.json
+npm-debug.log*
+yarn-error.log*
+lerna-debug.log
+node_modules
+coverage
+lib
+es
+# production
+dist
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+yarn.lock
+package-lock.json
+
+# misc
+.DS_Store
+
+# umi
+client/example/node_modules
+client/example/src/.umi
+client/example/src/.umi-production
+client/example/src/.umi-test
+client/example/.env.local
+
+# eslint
+.eslint-error.log
