@@ -5,6 +5,7 @@ import (
 	"github.com/grafana/grafana/pkg/bus"
 	"github.com/grafana/grafana/pkg/registry"
 	"github.com/grafana/grafana/pkg/setting"
+	"imove-server/server/conf"
 	"imove-server/server/log"
 	"imove-server/server/sqlstore/migrations"
 	"imove-server/server/sqlstore/migrator"
@@ -29,23 +30,8 @@ var (
 
 const ContextSessionName = "db-session"
 
-func init() {
-	// This change will make xorm use an empty default schema for postgres and
-	// by that mimic the functionality of how it was functioning before
-	// xorm's changes above.
-	xorm.DefaultPostgresSchema = ""
-
-	registry.Register(&registry.Descriptor{
-		Name:         "SqlStore",
-		Instance:     &SqlStore{},
-		InitPriority: registry.High,
-	})
-}
-
 type SqlStore struct {
-	Cfg *setting.Cfg `inject:""`
-	Bus bus.Bus      `inject:""`
-
+	Cfg                         *conf.Cfg
 	dbCfg                       DatabaseConfig
 	engine                      *xorm.Engine
 	log                         log.Logger
@@ -108,7 +94,7 @@ func (ss *SqlStore) buildConnectionString() (string, error) {
 	case migrator.SQLITE:
 		// special case for tests
 		if !filepath.IsAbs(ss.dbCfg.Path) {
-			ss.dbCfg.Path = filepath.Join(ss.Cfg.DataPath, ss.dbCfg.Path)
+			ss.dbCfg.Path = filepath.Join("", ss.dbCfg.Path)
 		}
 		if err := os.MkdirAll(path.Dir(ss.dbCfg.Path), os.ModePerm); err != nil {
 			return "", err
