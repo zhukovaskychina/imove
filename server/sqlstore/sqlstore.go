@@ -173,11 +173,6 @@ func (ss *SqlStore) readConfig() {
 	ss.dbCfg.MaxIdleConn = sec.Key("max_idle_conn").MustInt(2)
 	ss.dbCfg.ConnMaxLifetime = sec.Key("conn_max_lifetime").MustInt(14400)
 
-	ss.dbCfg.SslMode = sec.Key("ssl_mode").String()
-	ss.dbCfg.CaCertPath = sec.Key("ca_cert_path").String()
-	ss.dbCfg.ClientKeyPath = sec.Key("client_key_path").String()
-	ss.dbCfg.ClientCertPath = sec.Key("client_cert_path").String()
-	ss.dbCfg.ServerCertName = sec.Key("server_cert_name").String()
 	ss.dbCfg.Path = sec.Key("path").MustString("data/MOVE.db")
 
 	ss.dbCfg.CacheMode = sec.Key("cache_mode").MustString("private")
@@ -196,11 +191,6 @@ type DatabaseConfig struct {
 	User             string
 	Pwd              string
 	Path             string
-	SslMode          string
-	CaCertPath       string
-	ClientKeyPath    string
-	ClientCertPath   string
-	ServerCertName   string
 	ConnectionString string
 	MaxOpenConn      int
 	MaxIdleConn      int
