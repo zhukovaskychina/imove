@@ -1,14 +1,10 @@
 package sqlstore
 
 import (
-	"context"
 	"fmt"
 	"github.com/grafana/grafana/pkg/bus"
 	"github.com/grafana/grafana/pkg/registry"
-	"github.com/grafana/grafana/pkg/services/annotations"
-	"github.com/grafana/grafana/pkg/services/sqlstore/sqlutil"
 	"github.com/grafana/grafana/pkg/setting"
-	"github.com/grafana/grafana/pkg/util"
 	"imove-server/server/log"
 	"imove-server/server/sqlstore/migrations"
 	"imove-server/server/sqlstore/migrator"
@@ -19,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
 	"github.com/go-xorm/xorm"
 
 	_ "github.com/lib/pq"
@@ -74,73 +69,13 @@ func (ss *SqlStore) Init() error {
 	// temporarily still set global var
 	x = engine
 	dialect = ss.Dialect
-
 	migrator := migrator.NewMigrator(x)
 	migrations.AddMigrations(migrator)
-
-	for _, descriptor := range registry.GetServices() {
-		sc, ok := descriptor.Instance.(registry.DatabaseMigrator)
-		if ok {
-			sc.AddMigration(migrator)
-		}
-	}
 
 	if err := migrator.Start(); err != nil {
 		return fmt.Errorf("Migration failed err: %v", err)
 	}
-
-	// Init repo instances
-	annotations.SetRepository(&SqlAnnotationRepo{})
-	ss.Bus.SetTransactionManager(ss)
-
-	// Register handlers
-	ss.addUserQueryAndCommandHandlers()
-
-	if ss.skipEnsureDefaultOrgAndUser {
-		return nil
-	}
-
-	return ss.ensureMainOrgAndAdminUser()
-}
-
-func (ss *SqlStore) ensureMainOrgAndAdminUser() error {
-	err := ss.InTransaction(context.Background(), func(ctx context.Context) error {
-		systemUserCountQuery := m.GetSystemUserCountStatsQuery{}
-		err := bus.DispatchCtx(ctx, &systemUserCountQuery)
-		if err != nil {
-			return fmt.Errorf("Could not determine if admin user exists: %v", err)
-		}
-
-		if systemUserCountQuery.Result.Count > 0 {
-			return nil
-		}
-
-		// ensure admin user
-		if !ss.Cfg.DisableInitAdminCreation {
-			cmd := m.CreateUserCommand{}
-			cmd.Login = setting.AdminUser
-			cmd.Email = setting.AdminUser + "@localhost"
-			cmd.Password = setting.AdminPassword
-			cmd.IsAdmin = true
-
-			if err := bus.DispatchCtx(ctx, &cmd); err != nil {
-				return fmt.Errorf("Failed to create admin user: %v", err)
-			}
-
-			ss.log.Info("Created default admin", "user", setting.AdminUser)
-			return nil
-		}
-
-		// ensure default org if default admin user is disabled
-		if err := createDefaultOrg(ctx); err != nil {
-			return errutil.Wrap("Failed to create default organization", err)
-		}
-
-		ss.log.Info("Created default organization")
-		return nil
-	})
-
-	return err
+	return nil
 }
 
 func (ss *SqlStore) buildExtraConnectionString(sep rune) string {
