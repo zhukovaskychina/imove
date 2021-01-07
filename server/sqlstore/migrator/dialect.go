@@ -54,12 +54,8 @@ type Dialect interface {
 func NewDialect(engine *xorm.Engine) Dialect {
 	name := engine.DriverName()
 	switch name {
-	case MYSQL:
-		return NewMysqlDialect(engine)
 	case SQLITE:
 		return NewSqlite3Dialect(engine)
-	case POSTGRES:
-		return NewPostgresDialect(engine)
 	}
 
 	panic("Unsupported database type: " + name)
